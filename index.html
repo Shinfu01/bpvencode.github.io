@@ -381,7 +381,11 @@
             submitBtn.disabled = true;
 
             try {
-                await fetch(API_URL, { method: "POST", body: JSON.stringify(data) });
+                await fetch(API_URL, { 
+                    method: "POST", 
+                    body: JSON.stringify(data),
+                    mode: 'no-cors' 
+                });
                 
                 if (allSpreadsheetData.length > 0) {
                     const headers = allSpreadsheetData[0];
@@ -548,7 +552,8 @@
             try {
                 await fetch(API_URL, {
                     method: "POST",
-                    body: JSON.stringify(updatedData)
+                    body: JSON.stringify(updatedData),
+                    mode: 'no-cors'
                 });
                 
                 if (targetRowIndex !== -1) {
@@ -589,7 +594,8 @@
             try {
                 await fetch(API_URL, {
                     method: "POST",
-                    body: JSON.stringify({ action: "delete", id: recordId })
+                    body: JSON.stringify({ action: "delete", id: recordId }),
+                    mode: 'no-cors'
                 });
 
                 if (allSpreadsheetData.length > 0) {
