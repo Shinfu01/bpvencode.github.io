@@ -519,7 +519,7 @@
             const row = document.getElementById(`row-${recordId}`);
             const cells = row.querySelectorAll('.editable-cell');
             
-            let updatedData = { action: "update" };
+            let updatedData = { action: "update", id: recordId };
             let changesDetected = false;
 
             // Find current record matching locally stored original data state
