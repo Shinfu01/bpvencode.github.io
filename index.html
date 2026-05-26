@@ -292,6 +292,17 @@
     <script>
         const API_URL = "https://script.google.com/macros/s/AKfycbzXTxGO1crOvsP0IzExm1kkdAGKk-QNUI_R0V8bmjHDBsr39AaUkSnLA6F_dQRCjrw/exec"; 
         
+        async function refreshData() {
+            try {
+                const response = await fetch(API_URL, { redirect: 'follow' });
+                allSpreadsheetData = await response.json();
+            } catch (e) {
+                console.error("Failed to refresh data from sheet.");
+            }
+        }
+
+
+
         let allSpreadsheetData = []; 
         function showNotification(message, type = 'success') {
             const toast = document.getElementById("notificationToast");
@@ -394,6 +405,7 @@
                 }
 
                 showNotification("✅ Data added successfully!", "success");
+                await refreshData();
                 ['inputName', 'inputReason'].forEach(id => document.getElementById(id).value = '');
                 document.getElementById('inputStatus').value = 'Paid';
                 document.getElementById('inputSex').value = 'Male';
@@ -571,6 +583,7 @@
                 });
 
                 showNotification(`✅ Record ${recordId} updated successfully!`, "success");
+                await refreshData();
             } catch (e) {
                 showNotification("❌ Failed to save to server.", "error");
                 // Re-render table layout array state on complete drop errors to revert
@@ -610,6 +623,7 @@
                 if (row) row.remove();
 
                 showNotification(`✅ Record ${recordId} removed from database!`, "success");
+                await refreshData();
             } catch (e) {
                 showNotification("❌ Failed to process deletion request.", "error");
                 btnElement.innerText = "Delete";
