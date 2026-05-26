@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Encoding System</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --secondary: #f3f4f6;
+            --secondary-hover: #e5e7eb;
+            --text-main: #1f2937;
+            --text-muted: #6b7280;
+            --border: #d1d5db;
+            --bg-body: #f0fdf4; 
+            --bg-card: #ffffff;
+            --success: #10b981;
+            --danger: #ef4444;
+            --danger-hover: #dc2626;
+            --warning: #f59e0b;
+        }
+        body { 
+            font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f6f8f9 0%, #e5ebee 100%);
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--text-main);
+        }
+        
+        .app-container {
+            background-color: var(--bg-card);
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            text-align: center;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .app-container h1 { margin-top: 0; margin-bottom: 8px; color: var(--text-main); }
+        .app-container p { color: var(--text-muted); margin-bottom: 32px; font-size: 14px; }
+        .modal-overlay {
+            display: none; 
+            position: fixed; 
+            z-index: 50; 
+            left: 0; top: 0; 
+            width: 100%; height: 100%; 
+            background-color: rgba(17, 24, 39, 0.4); 
+            backdrop-filter: blur(4px); 
+            animation: fadeIn 0.2s ease-in-out;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .modal-content {
+            background-color: var(--bg-card);
+            margin: 5% auto; 
+            padding: 32px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 450px; 
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+        .modal-large { max-width: 800px; } 
+
+        /* --- Forms & Inputs --- */
+        .form-group { margin-bottom: 20px; text-align: left; }
+        .form-group label { 
+            display: block; 
+            margin-bottom: 8px; 
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--text-main);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .form-group input, .form-group select { 
+            width: 100%; 
+            padding: 12px; 
+            box-sizing: border-box; 
+            border: 1px solid var(--border); 
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37,99,235,0.15);
+        }
+        
+        .form-group input[readonly] {
+            background-color: var(--secondary);
+            color: var(--text-muted);
+            cursor: not-allowed;
+            border-color: var(--secondary-hover);
+        }
+
+        /* --- Table Styling --- */
+        .search-bar { margin-bottom: 16px; }
+        
+        .table-wrapper {
+            max-height: 400px;
+            overflow-y: auto;
+            overflow-x: auto; 
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.02);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+        th {
+            background-color: var(--secondary);
+            padding: 14px 16px;
+            position: sticky;
+            top: 0;
+            color: var(--text-muted);
+            font-weight: 600;
+            z-index: 10;
+        }
+        td {
+            padding: 14px 16px;
+            border-top: 1px solid var(--secondary-hover);
+            color: var(--text-main);
+            transition: background-color 0.1s;
+        }
+        tr:hover td { background-color: #f8fafc; }
+        
+        .editable-cell.editing {
+            background-color: #fffbeb;
+            box-shadow: inset 0 0 0 2px #fbbf24;
+            border-radius: 4px;
+            outline: none;
+        }
+
+        /* --- Buttons --- */
+        .btn-group { 
+            display: flex; 
+            justify-content: flex-end; 
+            gap: 12px; 
+            margin-top: 24px;
+        }
+        .main-btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        button { 
+            padding: 12px 20px; 
+            cursor: pointer; 
+            border-radius: 8px; 
+            border: none; 
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .app-footer {
+            position: absolute;
+            bottom: 20px;
+            width: 100%;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 13px;
+            letter-spacing: 0.05em;
+        }
+        .btn-primary { background-color: var(--primary); color: white; }
+        .btn-primary:hover:not(:disabled) { background-color: var(--primary-hover); transform: translateY(-1px); }
+        .btn-secondary { background-color: var(--secondary); color: var(--text-main); }
+        .btn-secondary:hover:not(:disabled) { background-color: var(--secondary-hover); }
+        
+        .btn-danger { background-color: var(--danger); color: white; }
+        .btn-danger:hover:not(:disabled) { background-color: var(--danger-hover); }
+        
+        .btn-action { padding: 6px 12px; font-size: 12px; border-radius: 6px; }
+        .btn-save { background-color: var(--success); color: white; }
+        .btn-save:hover { background-color: #059669; }
+
+        button:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+        .notification-toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            padding: 16px 24px;
+            border-radius: 8px;
+            background-color: #1e293b;
+            color: #ffffff;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transform: translateY(150%);
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .notification-toast.show {
+            transform: translateY(0);
+        }
+        .notification-toast.success { border-left: 4px solid var(--success); }
+        .notification-toast.error { border-left: 4px solid var(--danger); }
+        .notification-toast.warning { border-left: 4px solid var(--warning); }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <h1>BPV Encode!</h1>
+        <p>A simple encoding system made by STIers for Barangay Pilar Village</p>
+        
+        <div class="main-btn-group">
+            <button id="openAddModalBtn" class="btn-primary">Add New Record</button>
+            <button id="openSearchModalBtn" class="btn-secondary">Find / Edit Data</button>
+        </div>
+    </div>
+
+    <div id="addModal" class="modal-overlay">
+        <div class="modal-content">
+            <h2 style="margin-top: 0; margin-bottom: 24px;">Add New Record</h2>
+            <div class="form-group">
+                <label for="inputId">ID Number (Auto-Generated)</label>
+                <input type="text" id="inputId" readonly placeholder="Fetching ID...">
+            </div>
+            <div class="form-group">
+                <label for="inputName">Full Name</label>
+                <input type="text" id="inputName" placeholder="e.g., John Doe" autocomplete="off">
+            </div>
+            <div class="form-group">
+                <label for="inputSex">Sex</label>
+                <select id="inputSex">
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="inputReason">Reason</label>
+                <input type="text" id="inputReason" placeholder="e.g., Local Employment" autocomplete="off">
+            </div>
+            <div class="form-group">
+                <label for="inputStatus">Status</label>
+                <select id="inputStatus">
+                    <option value="Paid">Paid</option>
+                    <option value="Unpaid">Unpaid</option>
+                </select>
+            </div>
+            <div class="btn-group">
+                <button type="button" class="btn-secondary" id="closeAddModalBtn">Cancel</button>
+                <button type="button" class="btn-primary" id="submitDataBtn">Submit Data</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="searchModal" class="modal-overlay">
+        <div class="modal-content modal-large">
+            <h2 style="margin-top: 0; margin-bottom: 20px;">Database Records</h2>
+            
+            <div class="form-group search-bar">
+                <input type="text" id="searchInput" placeholder="🔍 Search by ID, Name, or any keyword..." autocomplete="off">
+            </div>
+
+            <div class="table-wrapper" id="tableContainer">
+                <p style="padding: 24px; text-align: center; color: var(--text-muted);">Loading database securely...</p>
+            </div>
+
+            <div class="btn-group">
+                <button type="button" class="btn-secondary" id="closeSearchModalBtn">Close Panel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="notificationToast" class="notification-toast"></div>
+
+    <footer class="app-footer">
+        &copy; Copyright by Aucheesticks 2026
+    </footer>
+
+    <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycbzXTxGO1crOvsP0IzExm1kkdAGKk-QNUI_R0V8bmjHDBsr39AaUkSnLA6F_dQRCjrw/exec"; 
+        
+        let allSpreadsheetData = []; 
+        function showNotification(message, type = 'success') {
+            const toast = document.getElementById("notificationToast");
+            toast.className = `notification-toast ${type}`;
+            toast.innerText = message;
+            toast.classList.add("show");
+            setTimeout(() => {
+                toast.classList.remove("show");
+            }, 5000);
+        }
+
+        // --- Pre-fetch Data on Page Load ---
+        window.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const response = await fetch(API_URL);
+                allSpreadsheetData = await response.json(); 
+            } catch (error) {
+                console.error("Background data fetch failed.");
+            }
+        });
+
+        // --- Helper Function: Get Next ID ---
+        function calculateNextId() {
+            if (!allSpreadsheetData || allSpreadsheetData.length <= 1) {
+                return 1;
+            }
+            
+            const headers = allSpreadsheetData[0];
+            const idColIndex = headers.findIndex(h => h.toLowerCase() === 'id');
+            
+            if (idColIndex === -1) return 1; 
+            
+            let maxId = 0;
+            for (let i = 1; i < allSpreadsheetData.length; i++) {
+                const currentId = parseInt(allSpreadsheetData[i][idColIndex], 10);
+                if (!isNaN(currentId) && currentId > maxId) {
+                    maxId = currentId;
+                }
+            }
+            
+            return maxId + 1;
+        }
+
+        // --- Modal Toggles ---
+        const addModal = document.getElementById("addModal");
+        const searchModal = document.getElementById("searchModal");
+
+        window.onclick = (event) => {
+            if (event.target === addModal) addModal.style.display = "none";
+            if (event.target === searchModal) searchModal.style.display = "none";
+        }
+
+        // --- Add Data Logic ---
+        document.getElementById("openAddModalBtn").onclick = async () => {
+            addModal.style.display = "flex";
+            const idInput = document.getElementById("inputId");
+            
+            if (allSpreadsheetData.length === 0) {
+                idInput.value = "⏳ Loading...";
+                try {
+                    const response = await fetch(API_URL);
+                    allSpreadsheetData = await response.json(); 
+                } catch (e) {
+                    idInput.value = "Error";
+                }
+            }
+            
+            idInput.value = calculateNextId();
+            document.getElementById("inputName").focus();
+        };
+
+        document.getElementById("closeAddModalBtn").onclick = () => addModal.style.display = "none";
+        
+        const submitBtn = document.getElementById("submitDataBtn");
+        submitBtn.onclick = async () => {
+            const data = { 
+                id: document.getElementById("inputId").value.trim(), 
+                name: document.getElementById("inputName").value.trim(), 
+                sex: document.getElementById("inputSex").value,
+                reason: document.getElementById("inputReason").value.trim(),
+                status: document.getElementById("inputStatus").value
+            };
+            
+            if(!data.id || !data.name) return showNotification("⚠️ Name field is required.", "warning");
+
+            submitBtn.innerText = "⏳ Sending...";
+            submitBtn.disabled = true;
+
+            try {
+                await fetch(API_URL, { method: "POST", body: JSON.stringify(data) });
+                
+                if (allSpreadsheetData.length > 0) {
+                    const headers = allSpreadsheetData[0];
+                    const newRow = headers.map(header => data[header.toLowerCase()] || data[header] || "");
+                    allSpreadsheetData.push(newRow);
+                }
+
+                showNotification("✅ Data added successfully!", "success");
+                ['inputName', 'inputReason'].forEach(id => document.getElementById(id).value = '');
+                document.getElementById('inputStatus').value = 'Paid';
+                document.getElementById('inputSex').value = 'Male';
+                addModal.style.display = "none";
+            } catch (error) {
+                showNotification("❌ Error adding data. Please check your connection.", "error");
+            } finally {
+                submitBtn.innerText = "Submit Data";
+                submitBtn.disabled = false;
+            }
+        };
+
+        // --- Find Data / Table Logic ---
+        document.getElementById("closeSearchModalBtn").onclick = () => searchModal.style.display = "none";
+
+        document.getElementById("openSearchModalBtn").onclick = async () => {
+            searchModal.style.display = "flex";
+            const tableContainer = document.getElementById("tableContainer");
+            document.getElementById("searchInput").value = ''; 
+
+            if (allSpreadsheetData.length > 0) {
+                renderTable(allSpreadsheetData);
+                document.getElementById("searchInput").focus();
+                return;
+            }
+
+            tableContainer.innerHTML = '<p style="padding: 24px; text-align: center; color: var(--text-muted);">Fetching live data from Google Sheets...</p>';
+            try {
+                const response = await fetch(API_URL);
+                allSpreadsheetData = await response.json(); 
+                renderTable(allSpreadsheetData);
+                document.getElementById("searchInput").focus();
+            } catch (error) {
+                tableContainer.innerHTML = '<p style="padding: 24px; text-align: center; color: #ef4444;">❌ Error fetching data. Check your Web App URL or internet connection.</p>';
+            }
+        };
+
+        function renderTable(dataArray) {
+            const tableContainer = document.getElementById("tableContainer");
+            
+            if (!dataArray || dataArray.length <= 1) {
+                tableContainer.innerHTML = '<p style="padding: 24px; text-align: center; color: var(--text-muted);">No records found.</p>';
+                return;
+            }
+
+            const headers = dataArray[0];
+            const idColIndex = headers.findIndex(h => h.toLowerCase() === 'id');
+
+            let html = '<table><thead><tr>';
+            headers.forEach(h => html += `<th>${h}</th>`);
+            html += '<th style="text-align:center;">Actions</th></tr></thead><tbody>';
+
+            for (let i = 1; i < dataArray.length; i++) {
+                const recordId = idColIndex !== -1 ? dataArray[i][idColIndex] : i;
+
+                html += `<tr id="row-${recordId}">`;
+                dataArray[i].forEach((cell, colIndex) => {
+                    const header = headers[colIndex];
+                    html += `<td class="editable-cell" data-col="${colIndex}" data-header="${header}" contenteditable="false">${cell}</td>`;
+                });
+                html += `
+                    <td style="text-align:center; display: flex; gap: 8px; justify-content: center;">
+                        <button class="btn-secondary btn-action" onclick="toggleEdit('${recordId}', this)">Edit</button>
+                        <button class="btn-danger btn-action" onclick="deleteRecord('${recordId}', this)">Delete</button>
+                    </td>
+                </tr>`;
+            }
+            html += '</tbody></table>';
+            tableContainer.innerHTML = html;
+        }
+
+        // --- Edit Logic ---
+        function toggleEdit(recordId, btnElement) {
+            const row = document.getElementById(`row-${recordId}`);
+            if (!row) return;
+            const editableCells = row.querySelectorAll('.editable-cell');
+
+            if (btnElement.innerText === "Edit") {
+                btnElement.innerText = "Save";
+                btnElement.classList.remove('btn-secondary');
+                btnElement.classList.add('btn-save');
+                
+                editableCells.forEach(cell => {
+                    const header = cell.dataset.header ? cell.dataset.header.trim().toLowerCase() : "";
+                    const currentVal = cell.innerText.trim();
+                    
+                    if (header === "sex") {
+                        cell.innerHTML = `
+                            <select class="edit-select" style="width: 100%; padding: 6px; border-radius: 4px; border: 1px solid #d1d5db;">
+                                <option value="Male" ${currentVal === 'Male' ? 'selected' : ''}>Male</option>
+                                <option value="Female" ${currentVal === 'Female' ? 'selected' : ''}>Female</option>
+                            </select>
+                        `;
+                    } else if (header === "status") {
+                        cell.innerHTML = `
+                            <select class="edit-select" style="width: 100%; padding: 6px; border-radius: 4px; border: 1px solid #d1d5db;">
+                                <option value="Paid" ${currentVal === 'Paid' ? 'selected' : ''}>Paid</option>
+                                <option value="Unpaid" ${currentVal === 'Unpaid' ? 'selected' : ''}>Unpaid</option>
+                            </select>
+                        `;
+                    } else if (cell.dataset.col !== "0" && header !== "id") { 
+                        cell.contentEditable = "true";
+                        cell.classList.add("editing");
+                    }
+                });
+            } else {
+                saveRow(recordId, btnElement);
+            }
+        }
+
+        async function saveRow(recordId, btnElement) {
+            const row = document.getElementById(`row-${recordId}`);
+            const cells = row.querySelectorAll('.editable-cell');
+            
+            let updatedData = { action: "update" };
+            let changesDetected = false;
+
+            // Find current record matching locally stored original data state
+            const headers = allSpreadsheetData[0];
+            const idIndex = headers.findIndex(h => h.toLowerCase() === 'id');
+            const targetRowIndex = allSpreadsheetData.findIndex(r => String(r[idIndex]) === String(recordId));
+
+            // Process values and run comparisons
+            cells.forEach(cell => {
+                const header = cell.dataset.header;
+                const colIdx = parseInt(cell.dataset.col, 10);
+                const select = cell.querySelector('select');
+                const val = select ? select.value : cell.innerText.trim();
+                
+                updatedData[header] = val;
+
+                // Detect if the text inputs or drop-downs actually changed from old memory row array data
+                if (targetRowIndex !== -1 && String(allSpreadsheetData[targetRowIndex][colIdx]).trim() !== String(val)) {
+                    changesDetected = true;
+                }
+            });
+
+            // "No Changed Feature": Quietly revert structural edit layout view if nothing modified
+            if (!changesDetected) {
+                cells.forEach(cell => {
+                    const select = cell.querySelector('select');
+                    cell.textContent = select ? select.value : cell.innerText.trim(); 
+                    cell.contentEditable = "false";
+                    cell.classList.remove("editing"); 
+                });
+                btnElement.innerText = "Edit";
+                btnElement.classList.remove('btn-save');
+                btnElement.classList.add('btn-secondary');
+                return; 
+            }
+
+            // Execute network payload update routine since mutations were confirmed
+            btnElement.innerText = "⏳...";
+            btnElement.disabled = true;
+
+            try {
+                await fetch(API_URL, {
+                    method: "POST",
+                    body: JSON.stringify(updatedData)
+                });
+                
+                if (targetRowIndex !== -1) {
+                     headers.forEach((h, i) => {
+                         allSpreadsheetData[targetRowIndex][i] = updatedData[h];
+                     });
+                }
+
+                // Final text assignments
+                cells.forEach(cell => {
+                    const select = cell.querySelector('select');
+                    cell.textContent = select ? select.value : cell.innerText.trim(); 
+                    cell.contentEditable = "false";
+                    cell.classList.remove("editing"); 
+                });
+
+                showNotification(`✅ Record ${recordId} updated successfully!`, "success");
+            } catch (e) {
+                showNotification("❌ Failed to save to server.", "error");
+                // Re-render table layout array state on complete drop errors to revert
+                renderTable(allSpreadsheetData);
+            } finally {
+                btnElement.innerText = "Edit";
+                btnElement.classList.remove('btn-save');
+                btnElement.classList.add('btn-secondary');
+                btnElement.disabled = false;
+            }
+        }
+
+        // --- Delete Logic ---
+        async function deleteRecord(recordId, btnElement) {
+            // Kept basic confirmation window as standard security check layer against missclicks
+            if (!confirm(`⚠️ Are you sure you want to delete record ID [ ${recordId} ]?`)) return;
+
+            btnElement.innerText = "⏳...";
+            btnElement.disabled = true;
+
+            try {
+                await fetch(API_URL, {
+                    method: "POST",
+                    body: JSON.stringify({ action: "delete", id: recordId })
+                });
+
+                if (allSpreadsheetData.length > 0) {
+                    const headers = allSpreadsheetData[0];
+                    const idIndex = headers.findIndex(h => h.toLowerCase() === 'id');
+                    allSpreadsheetData = allSpreadsheetData.filter((row, idx) => {
+                        return idx === 0 || String(row[idIndex]) !== String(recordId);
+                    });
+                }
+
+                const row = document.getElementById(`row-${recordId}`);
+                if (row) row.remove();
+
+                showNotification(`✅ Record ${recordId} removed from database!`, "success");
+            } catch (e) {
+                showNotification("❌ Failed to process deletion request.", "error");
+                btnElement.innerText = "Delete";
+                btnElement.disabled = false;
+            }
+        }
+
+        // --- Live Search Filter ---
+        document.getElementById("searchInput").addEventListener("input", (e) => {
+            const searchTerm = e.target.value.toLowerCase().trim();
+            
+            if (allSpreadsheetData.length === 0) return;
+            const headers = allSpreadsheetData[0];
+            
+            const filteredRows = allSpreadsheetData.slice(1).filter(row => {
+                return row.some(cell => String(cell).toLowerCase().includes(searchTerm));
+            });
+
+            renderTable([headers, ...filteredRows]);
+        });
+    </script>
+</body>
+</html>
